@@ -1,6 +1,9 @@
+import asyncpg
+import pandas as pd
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from telethon import TelegramClient
 
+from config.config import POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_HOST, POSTGRES_DB
 from database.postgres import get_db_connection
 
 
@@ -106,14 +109,14 @@ def get_result_by_code(code):
     conn = get_db_connection()
     cur = conn.cursor()
     try:
-        cur.execute("SELECT code, math_ball, english_ball, common_ball FROM results WHERE code = %s", (code,))
+        cur.execute("SELECT code, math_ball, english_ball FROM results WHERE code = %s", (code,))
         result = cur.fetchone()
         if result:
             message_text = f"""
 <code>1. Sizning codingiz: </code> {result[0]}
 <code>2. Matematika balingiz: </code> {result[1]}
 <code>3. Ingliz tili balingiz: </code> {result[2]}
-<code>4. Umumiy balingiz: </code> {result[3]}
+<code>4. Umumiy balingiz: </code> {result[1] + result[2]}
             """
             markup = InlineKeyboardMarkup()
             download_button = InlineKeyboardButton("📄 Sertifikatni yuklab olish",
@@ -128,3 +131,21 @@ def get_result_by_code(code):
     finally:
         cur.close()
         conn.close()
+
+
+async def import_result_informations(file_stream, chat_id, bot):
+    df = pd.read_excel(file_stream)
+
+    conn = await asyncpg.connect(user=POSTGRES_USER, password=POSTGRES_PASSWORD,
+                                 database=POSTGRES_DB, host=POSTGRES_HOST)
+    try:
+        for index, row in df.iterrows():
+            await conn.execute('''
+                INSERT INTO results (code, math_ball, english_ball, user_name, user_surname)
+                VALUES ($1, $2, $3, $4, $5)
+                ON CONFLICT (code) DO NOTHING;
+            ''', row['code'], row['math_ball'], row['english_ball'], row['user_name'], row['user_surname'])
+    finally:
+        await conn.close()
+
+    await bot.send_message(chat_id=chat_id, text="Malumotlar muvaffaqiyatli import qilindi.")

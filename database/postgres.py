@@ -28,7 +28,6 @@ def create_tables():
         code varchar PRIMARY KEY ,
         math_ball int NOT NULL DEFAULT 0,
         english_ball int NOT NULL DEFAULT 0,
-        common_ball int NOT NULL Default 0,
         user_name varchar NOT NULL ,
         user_surname varchar NOT NULL
         );
