@@ -17,9 +17,16 @@ async def send_message(message, bot, messageField, state):
 async def send_welcome_admin(message, bot):
     name = message.from_user.first_name
     welcome_message = f"""
-    Salom {name}. Siz tizimda <code> admin </code> rolidasiz , kerakli amalni tanlang.
+    Salom {name}. Siz tizimda <code>admin</code> rolidasiz, kerakli amalni tanlang.
     """
-    await send_message(message, bot, welcome_message, False)
+    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    import_button = KeyboardButton("Natijalarni Import Qilish (Excel orqali)")
+    add_result_button = KeyboardButton("Natija qo'shish")
+    add_competition_button = KeyboardButton("Yangi Musobaqa qo'shish")
+
+    markup.add(import_button, add_result_button)
+    markup.add(add_competition_button)
+    await bot.send_message(message.chat.id, welcome_message, reply_markup=markup, parse_mode='HTML')
 
 
 api_id = '20182242'
@@ -109,7 +116,8 @@ def get_result_by_code(code):
 <code>4. Umumiy balingiz: </code> {result[3]}
             """
             markup = InlineKeyboardMarkup()
-            download_button = InlineKeyboardButton("📄 Sertifikatni yuklab olish", callback_data='download_certificate')
+            download_button = InlineKeyboardButton("📄 Sertifikatni yuklab olish",
+                                                   callback_data=f'download_certificate_{result[0]}')
             markup.add(download_button)
 
             return message_text, markup
