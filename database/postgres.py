@@ -23,9 +23,14 @@ def create_tables():
             phone_number VARCHAR(20) UNIQUE NOT NULL,
             first_name VARCHAR(100),
             last_name VARCHAR(100)
-        )
+        );
+        CREATE TABLE IF NOT EXISTS results(
+        code varchar PRIMARY KEY ,
+        math_ball int NOT NULL DEFAULT 0,
+        english_ball int NOT NULL DEFAULT 0,
+        common_ball int NOT NULL Default 0
+        );
     """)
     conn.commit()
     cur.close()
     conn.close()
-
