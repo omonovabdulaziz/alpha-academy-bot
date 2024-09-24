@@ -8,9 +8,9 @@ def send_message(message, bot):
     contact_button = KeyboardButton("📞 Send Contact", request_contact=True)
     markup.add(contact_button)
     welcome_message = f"""
-    🇺🇿
-    Salom {name} 👋
-    Natijalarni bilish uchun contactingizni yuboring va kodingizni kiritib natijalaringiz haqida bilib oling.
+🇺🇿
+Salom {name} 👋
+Natijalarni bilish uchun contactingizni yuboring va kodingizni kiritib natijalaringiz haqida bilib oling.
     """
     bot.send_message(message.chat.id, welcome_message, reply_markup=markup)
 
@@ -18,6 +18,10 @@ def send_message(message, bot):
 def send_welcome_admin(message, bot):
     name = message.from_user.first_name
     welcome_message = f"""
-    Salom {name}. Siz tizimda admin rolidasiz.
+Salom {name}. Siz tizimda admin rolidasiz.
     """
     bot.send_message(message.chat.id, welcome_message)
+
+
+def check_exist_in_required_channel(chat_id, required_channels):
+    pass
