@@ -101,9 +101,9 @@ async def handle_result(message):
             result_data = [item.strip() for item in line.split(",")]
 
             if len(result_data) != 5:
-                await bot.send_message(chat_id, f"Invalid format in line: {line}")
+                await bot.send_message(chat_id,
+                                       f"Ushbu qator notog'ri formatda : {line}. Qolgan qatorlarni o'qish jarayoni ketyapti iltimos kuting ⏳")
                 continue
-
             try:
                 code = result_data[0]
                 math_ball = int(result_data[1])
@@ -111,7 +111,8 @@ async def handle_result(message):
                 user_name = result_data[3]
                 user_surname = result_data[4]
             except ValueError:
-                await bot.send_message(chat_id, f"Invalid number format in line: {line}")
+                await bot.send_message(chat_id,
+                                       f"Ushbu qator notog'ri formatda  : {line}. Qolgan qatorlarni o'qish jarayoni ketyapti iltimos kuting ⏳")
                 continue
 
             try:
@@ -125,7 +126,7 @@ async def handle_result(message):
                 await bot.send_message(chat_id, f"Error inserting line: {line}. Error: {str(e)}")
                 continue
 
-        await bot.send_message(chat_id, "Natijalar muvaffaqiyatli qo'shildi.")
+        await bot.send_message(chat_id, "Natijalar muvaffaqiyatli qo'shildi 👍")
 
     finally:
         await conn.close()
