@@ -2,6 +2,7 @@ import asyncio
 
 from config.config import IS_MIGRATE, ADMIN_CHAT_ID
 from database.postgres import create_tables
+from helpers.extraHelpers import check_exist_in_required_channel
 from helpers.helpers import handle_contact_helper, bot, send_welcome_helper, handle_code, handle_document_excel, \
     handle_result
 
@@ -57,6 +58,10 @@ async def handle_any_message(message):
     if str(chat_id) == ADMIN_CHAT_ID:
         await handle_result(message)
     else:
+        check = await check_exist_in_required_channel(chat_id, ["abdulazizomonovblog", "sh0kh_07"])
+        if not check:
+            bot.send_message(chat_id, "Iltimos talab qilingan kanallarga azo bo'ling !!")
+            return
         await handle_code(message)
 
 
