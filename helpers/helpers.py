@@ -1,15 +1,16 @@
 import telebot
-from config.config import BOT_TOKEN , ADMIN_CHAT_ID
-from helpers.extraHelpers import  send_welcome_admin
+
+from config.config import BOT_TOKEN, ADMIN_CHAT_ID
+from helpers.extraHelpers import send_welcome_admin, send_message
 
 bot = telebot.TeleBot(BOT_TOKEN)
+
 
 def send_welcome_helper(message):
     if message.chat.id == ADMIN_CHAT_ID:
         send_welcome_admin(message, bot)
     else:
-        send_welcome_admin(message, bot)
-
+        send_message(message, bot)
 
 
 def handle_contact_helper(message):
@@ -21,4 +22,3 @@ def handle_contact_helper(message):
 
     if phone_number[0] != "+":
         phone_number = "+" + phone_number
-
