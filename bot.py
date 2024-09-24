@@ -1,16 +1,17 @@
 from config.config import IS_MIGRATE
 from database.postgres import create_tables
 from helpers.helpers import handle_contact_helper, bot, send_welcome_helper
+import asyncio
 
 
 @bot.message_handler(content_types=['contact'])
-def handle_contact(message):
-    handle_contact_helper(message)
+async def handle_contact(message):
+    await handle_contact_helper(message)
 
 
 @bot.message_handler(commands=['start'])
-def send_welcome(message):
-    send_welcome_helper(message)
+async def send_welcome(message):
+    await send_welcome_helper(message)
 
 
 if __name__ == '__main__':
@@ -18,4 +19,4 @@ if __name__ == '__main__':
     if IS_MIGRATE:
         create_tables()
 
-    bot.polling(none_stop=True)
+    asyncio.run(bot.polling())
