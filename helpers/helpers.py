@@ -11,10 +11,6 @@ def send_welcome_helper(message):
         send_welcome_admin(message, bot)
 
 
-from config.config import BOT_TOKEN
-
-bot = telebot.TeleBot(BOT_TOKEN)
-
 
 def handle_contact_helper(message):
     chat_id = message.chat.id
