@@ -17,7 +17,7 @@ async def handle_contact(message):
     await handle_contact_helper(message)
 
 
-@bot.message_handler(func=lambda message: message.text == "Natijalarni Import Qilish (Excel orqali)")
+@bot.message_handler(func=lambda message: message.text == "Natijalarni Yuklash (Excel orqali)")
 async def handle_import_results(message):
     chat_id = message.chat.id
     if str(chat_id) != ADMIN_CHAT_ID:
