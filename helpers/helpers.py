@@ -34,8 +34,8 @@ async def send_welcome_helper(message):
         else:
             await send_message(message, bot, """
 Iltimos belgilangan kanallarni barchasiga ulaning va qaytadan /start bosing!!
-<code>1.</code> @abdulazizomonovblog
-<code>2.</code> @sh0kh_07
+<code>1.</code> @IT_LIVE_GULISTON
+<code>2.</code> @abdulazizomonovblog
             """, False)
 
 
