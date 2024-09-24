@@ -9,7 +9,7 @@ from database.postgres import get_db_connection
 
 async def send_message(message, bot, messageField, state):
     markup = ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
-    contact_button = KeyboardButton("📞 Send Contact", request_contact=True)
+    contact_button = KeyboardButton("📞 Telefon raqam yuborish", request_contact=True)
     markup.add(contact_button)
     if state:
         await bot.send_message(message.chat.id, messageField, reply_markup=markup)
@@ -23,7 +23,7 @@ async def send_welcome_admin(message, bot):
     Salom {name}. Siz tizimda <code>admin</code> rolidasiz, kerakli amalni tanlang.
     """
     markup = ReplyKeyboardMarkup(resize_keyboard=True)
-    import_button = KeyboardButton("Natijalarni Import Qilish (Excel orqali)")
+    import_button = KeyboardButton("Natijalarni Yuklash (Excel orqali)")
     add_result_button = KeyboardButton("Natija qo'shish")
     add_competition_button = KeyboardButton("Yangi Musobaqa qo'shish")
 
@@ -114,9 +114,9 @@ def get_result_by_code(code):
         if result:
             message_text = f"""
 <code>1. Sizning codingiz: </code> {result[0]}
-<code>2. Matematika balingiz: </code> {result[1]}
-<code>3. Ingliz tili balingiz: </code> {result[2]}
-<code>4. Umumiy balingiz: </code> {result[1] + result[2]}
+<code>2. Matematika ballingiz: </code> {result[1]}
+<code>3. Ingliz tili ballingiz: </code> {result[2]}
+<code>4. Umumiy ballingiz: </code> {result[1] + result[2]}
             """
             markup = InlineKeyboardMarkup()
             download_button = InlineKeyboardButton("📄 Sertifikatni yuklab olish",

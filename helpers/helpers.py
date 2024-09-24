@@ -21,9 +21,9 @@ async def send_welcome_helper(message):
         await send_welcome_admin(message, bot)
     else:
         greeting_text = (f"Assalomu alaykum {first_name}, alpha academy botga xush kelibsiz. "
-                         f"<code>Malumotlaringiz tekshirilmoqda .....</code>")
+                         f"<code>Ma'lumotlaringiz tekshirilmoqda .....</code>")
         await send_message(message, bot, greeting_text, False)
-        check = await check_exist_in_required_channel(chat_id, ["abdulazizomonovblog", "sh0kh_07"])
+        check = await check_exist_in_required_channel(chat_id, ["IT_LIVE_GULISTON"])
         if check:
             if check_user_exist_by_chat_id(chat_id):
                 await  send_message(message, bot,
