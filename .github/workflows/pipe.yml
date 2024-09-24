@@ -19,7 +19,7 @@ jobs:
           SERVER_IP: ${{ secrets.SERVER_IP }}
         run: |
           sshpass -p "$SERVER_PASSWORD" ssh -o StrictHostKeyChecking=no abdulaziz@$SERVER_IP "
-          cd cd alpha-academy-bot &&
+          cd alpha-academy-bot &&
           git pull &&
           docker-compose build &&
           docker-compose up -d
