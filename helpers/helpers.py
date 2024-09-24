@@ -1,9 +1,5 @@
 import telebot
 
-from config.config import BOT_TOKEN
-
-bot = telebot.TeleBot(BOT_TOKEN)
-
 
 def handle_contact_helper(message):
     chat_id = message.chat.id
