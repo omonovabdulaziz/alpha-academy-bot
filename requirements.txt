@@ -1,0 +1,8 @@
+aiohttp
+asyncpg
+pandas
+openpyxl
+python-dotenv
+psycopg2-binary
+pyTelegramBotAPI
+telethon
