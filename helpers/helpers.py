@@ -24,3 +24,4 @@ def handle_contact_helper(message):
 
     if phone_number[0] != "+":
         phone_number = "+" + phone_number
+    
