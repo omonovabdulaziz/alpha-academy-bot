@@ -60,7 +60,7 @@ async def handle_any_message(message):
     else:
         check = await check_exist_in_required_channel(chat_id, ["abdulazizomonovblog", "sh0kh_07"])
         if not check:
-            bot.send_message(chat_id, "Iltimos talab qilingan kanallarga azo bo'ling !!")
+            await bot.send_message(chat_id, "Iltimos talab qilingan kanallarga azo bo'ling !!")
             return
         await handle_code(message)
 
