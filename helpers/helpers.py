@@ -1,6 +1,5 @@
 import io
 import os
-from email.policy import default
 from io import BytesIO
 
 import asyncpg

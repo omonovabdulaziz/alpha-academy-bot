@@ -13,6 +13,7 @@ services:
       - db
     volumes:
       - .:/app
+      - ./bot_session.session:/root/.config/Telethon/bot_session.session
     command: python bot.py
 
   db:
