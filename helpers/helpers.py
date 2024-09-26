@@ -26,7 +26,7 @@ async def send_welcome_helper(message):
         greeting_text = (f"Assalomu alaykum {first_name}, alpha academy botga xush kelibsiz. "
                          f"<code>Ma'lumotlaringiz tekshirilmoqda .....</code>")
         await send_message(message, bot, greeting_text, False)
-        check = await check_exist_in_required_channel(chat_id, ["IT_LIVE_GULISTON", "GULISTONACADEMY"])
+        check = await check_exist_in_required_channel(chat_id, ["IT_LIVE_GULISTON", "ALPHA_ACADEMY_GULISTAN"])
         if check:
             if await check_user_exist_by_chat_id(chat_id):
                 await  send_message(message, bot,
@@ -37,7 +37,7 @@ async def send_welcome_helper(message):
         else:
             await send_message(message, bot, """
 Iltimos belgilangan kanallarni barchasiga ulaning va qaytadan /start bosing!!
-<code>1.</code> @GULISTONACADEMY
+<code>1.</code> @ALPHA_ACADEMY_GULISTAN
 <code>2.</code> @IT_LIVE_GULISTON
             """, False)
 
