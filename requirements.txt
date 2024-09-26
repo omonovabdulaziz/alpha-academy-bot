@@ -1,8 +1,10 @@
 aiohttp
-asyncpg
-pandas
+asyncpg~=0.29.0
+pandas~=2.2.3
 openpyxl
-python-dotenv
-psycopg2-binary
-pyTelegramBotAPI
-telethon
+python-dotenv~=1.0.1
+psycopg2-binary~=2.9.9
+pyTelegramBotAPI~=4.23.0
+telethon~=1.37.0
+telebot~=0.0.5
+opencv-python~=4.10.0.84

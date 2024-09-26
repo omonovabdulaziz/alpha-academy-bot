@@ -1,10 +1,11 @@
 import asyncio
+from pyexpat.errors import messages
 
 from config.config import IS_MIGRATE, ADMIN_CHAT_ID
 from database.postgres import create_tables
 from helpers.extraHelpers import check_exist_in_required_channel
 from helpers.helpers import handle_contact_helper, bot, send_welcome_helper, handle_code, handle_document_excel, \
-    handle_result
+    handle_result, handle_generate_certificate
 
 
 @bot.message_handler(commands=['start'])
@@ -58,7 +59,7 @@ async def handle_any_message(message):
     if str(chat_id) == ADMIN_CHAT_ID:
         await handle_result(message)
     else:
-        check = await check_exist_in_required_channel(chat_id, ["IT_LIVE_GULISTON"])
+        check = await check_exist_in_required_channel(chat_id, ["IT_LIVE_GULISTON" , "GULISTONACADEMY"])
         if not check:
             await bot.send_message(chat_id, "Iltimos talab qilingan kanallarga azo bo'ling !!")
             return
@@ -70,6 +71,8 @@ async def handle_download_certificate(call):
     code = call.data.split('_')[2]
     await bot.send_message(call.message.chat.id, "Sertifikatingiz tayyorlanmoqda iltimos kuting <code> 🕔 </code>",
                            parse_mode='HTML')
+    imgByte = await handle_generate_certificate(code)
+    await bot.send_photo(call.message.chat.id, imgByte, caption="Sertifikatingiz tayyor!")
 
 
 @bot.message_handler(content_types=['document'])

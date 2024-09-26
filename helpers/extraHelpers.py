@@ -2,6 +2,7 @@ import asyncpg
 import pandas as pd
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from telethon import TelegramClient
+import cv2
 
 from config.config import POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_HOST, POSTGRES_DB
 from database.postgres import get_db_connection
@@ -53,7 +54,7 @@ async def check_exist_in_required_channel(chat_id, channels):
         return all(membership_status)
 
 
-def save_contact_to_db(chat_id, phone_number, first_name, last_name):
+async def save_contact_to_db(chat_id, phone_number, first_name, last_name):
     conn = get_db_connection()
     cur = conn.cursor()
 
@@ -75,7 +76,7 @@ def save_contact_to_db(chat_id, phone_number, first_name, last_name):
         conn.close()
 
 
-def check_user_exist_phone_number(phone_number):
+async def check_user_exist_phone_number(phone_number):
     conn = get_db_connection()
     cur = conn.cursor()
     try:
@@ -90,7 +91,7 @@ def check_user_exist_phone_number(phone_number):
         conn.close()
 
 
-def check_user_exist_by_chat_id(chat_id):
+async def check_user_exist_by_chat_id(chat_id):
     conn = get_db_connection()
     cur = conn.cursor()
     try:
@@ -105,7 +106,7 @@ def check_user_exist_by_chat_id(chat_id):
         conn.close()
 
 
-def get_result_by_code(code):
+async def get_result_by_code(code):
     conn = get_db_connection()
     cur = conn.cursor()
     try:
@@ -149,3 +150,41 @@ async def import_result_informations(file_stream, chat_id, bot):
         await conn.close()
 
     await bot.send_message(chat_id=chat_id, text="Malumotlar muvaffaqiyatli import qilindi.")
+
+
+async def add_name_to_certificate(image_path, name, surname):
+    img = cv2.imread(image_path)
+    if img is None:
+        raise ValueError(f"Unable to load image from {image_path}")
+    img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    height, width = img.shape[:2]
+
+    x = int(width * 0.5)
+    y = int(height * 0.50)
+    text = f"{name} {surname}"
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 2
+    font_color = (0, 0, 0)
+    thickness = 5
+    text_size, _ = cv2.getTextSize(text, font, font_scale, thickness)
+    text_x = x - (text_size[0] // 2)
+    text_y = y + (text_size[1] // 2)
+    cv2.putText(img, text, (text_x, text_y), font, font_scale, font_color, thickness, cv2.LINE_AA)
+
+    return img
+
+
+async def get_user_information_by_code(code):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT user_name, user_surname FROM results WHERE code = %s", (code,))
+        user_info = cur.fetchone()
+        if user_info:
+            name, surname = user_info
+            return name, surname
+        else:
+            raise ValueError(f"No user found with code: {code}")
+    finally:
+        cur.close()
+        conn.close()

@@ -1,12 +1,16 @@
+import io
 import os
+from email.policy import default
 from io import BytesIO
 
 import asyncpg
+import cv2
 from telebot.async_telebot import AsyncTeleBot
 
 from config.config import BOT_TOKEN, ADMIN_CHAT_ID, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_HOST, POSTGRES_DB
 from helpers.extraHelpers import send_welcome_admin, send_message, check_exist_in_required_channel, save_contact_to_db, \
-    check_user_exist_phone_number, check_user_exist_by_chat_id, get_result_by_code, import_result_informations
+    check_user_exist_phone_number, check_user_exist_by_chat_id, get_result_by_code, import_result_informations, \
+    get_user_information_by_code, add_name_to_certificate
 
 bot = AsyncTeleBot(BOT_TOKEN)
 
@@ -23,9 +27,9 @@ async def send_welcome_helper(message):
         greeting_text = (f"Assalomu alaykum {first_name}, alpha academy botga xush kelibsiz. "
                          f"<code>Ma'lumotlaringiz tekshirilmoqda .....</code>")
         await send_message(message, bot, greeting_text, False)
-        check = await check_exist_in_required_channel(chat_id, ["IT_LIVE_GULISTON"])
+        check = await check_exist_in_required_channel(chat_id, ["IT_LIVE_GULISTON", "GULISTONACADEMY"])
         if check:
-            if check_user_exist_by_chat_id(chat_id):
+            if await check_user_exist_by_chat_id(chat_id):
                 await  send_message(message, bot,
                                     "Hammasi Joyida. Endi sizga taqdim etilgan <code>codeni</code> yuboring va natijangizni bilib oling!!",
                                     False)
@@ -34,8 +38,8 @@ async def send_welcome_helper(message):
         else:
             await send_message(message, bot, """
 Iltimos belgilangan kanallarni barchasiga ulaning va qaytadan /start bosing!!
-<code>1.</code> @IT_LIVE_GULISTON
-<code>2.</code> @abdulazizomonovblog
+<code>1.</code> @GULISTONACADEMY
+<code>2.</code> @IT_LIVE_GULISTON
             """, False)
 
 
@@ -48,8 +52,8 @@ async def handle_contact_helper(message):
 
     if phone_number[0] != "+":
         phone_number = "+" + phone_number
-    if not check_user_exist_phone_number(phone_number):
-        save_contact_to_db(chat_id, phone_number, first_name, last_name)
+    if not await check_user_exist_phone_number(phone_number):
+        await save_contact_to_db(chat_id, phone_number, first_name, last_name)
     await send_message(message, bot,
                        "Hammasi Joyida. Endi sizga taqdim etilgan <code>codeni</code> yuboring va natijangizni bilib oling!!",
                        False)
@@ -57,7 +61,7 @@ async def handle_contact_helper(message):
 
 async def handle_code(message):
     text = message.text
-    result_text, markup = get_result_by_code(text)
+    result_text, markup = await get_result_by_code(text)
     if markup:
         await bot.send_message(message.chat.id, result_text, reply_markup=markup, parse_mode="HTML")
     else:
@@ -130,3 +134,17 @@ async def handle_result(message):
 
     finally:
         await conn.close()
+
+
+async def handle_generate_certificate(code):
+    name, surname = await get_user_information_by_code(code)
+    image_path = "Sertifikat.png"
+    modified_image = await add_name_to_certificate(image_path, name, surname)
+    is_success, buffer = cv2.imencode('.jpg', modified_image)
+
+    if is_success:
+        img_byte = io.BytesIO(buffer)
+        img_byte.seek(0)
+        return img_byte
+    else:
+        raise ValueError("Image encoding failed")
