@@ -59,7 +59,7 @@ async def handle_any_message(message):
     if str(chat_id) == ADMIN_CHAT_ID:
         await handle_result(message)
     else:
-        check = await check_exist_in_required_channel(chat_id, ["IT_LIVE_GULISTON" , "GULISTONACADEMY"])
+        check = await check_exist_in_required_channel(chat_id, ["IT_LIVE_GULISTON" , "ALPHA_ACADEMY_GULISTAN"])
         if not check:
             await bot.send_message(chat_id, "Iltimos talab qilingan kanallarga azo bo'ling !!")
             return
