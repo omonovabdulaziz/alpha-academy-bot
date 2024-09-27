@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+  bot:
+    build: .
+    container_name: alpha_academy_bot_service
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - botnet
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+      - ./bot_session.session:/root/.config/Telethon/bot_session.session
+    command: python bot.py
+
+  db:
+    image: postgres:15
+    container_name: alpha_academy_postgres_service
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: alphadb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - botnet
+
+networks:
+  botnet:
+    driver: bridge
+
+volumes:
+  postgres_data:

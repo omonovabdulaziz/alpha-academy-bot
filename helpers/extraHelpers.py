@@ -1,50 +1,190 @@
-from telebot.types import ReplyKeyboardMarkup, KeyboardButton
+import asyncpg
+import pandas as pd
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from telethon import TelegramClient
+import cv2
 
-def send_message(message, bot):
-    name = message.from_user.first_name
+from config.config import POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_HOST, POSTGRES_DB
+from database.postgres import get_db_connection
 
+
+async def send_message(message, bot, messageField, state):
     markup = ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
-    contact_button = KeyboardButton("📞 Send Contact", request_contact=True)
+    contact_button = KeyboardButton("📞 Telefon raqam yuborish", request_contact=True)
     markup.add(contact_button)
-    welcome_message = f"""
-🇺🇿
-Salom {name} 👋
-Natijalarni bilish uchun contactingizni yuboring va kodingizni kiritib natijalaringiz haqida bilib oling.
-    """
-    bot.send_message(message.chat.id, welcome_message, reply_markup=markup)
+    if state:
+        await bot.send_message(message.chat.id, messageField, reply_markup=markup)
+    else:
+        await bot.send_message(message.chat.id, messageField, parse_mode="HTML")
 
 
-def send_welcome_admin(message, bot):
+async def send_welcome_admin(message, bot):
     name = message.from_user.first_name
     welcome_message = f"""
-Salom {name}. Siz tizimda admin rolidasiz.
+    Salom {name}. Siz tizimda <code>admin</code> rolidasiz, kerakli amalni tanlang.
     """
-    bot.send_message(message.chat.id, welcome_message)
+    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    import_button = KeyboardButton("Natijalarni Yuklash (Excel orqali)")
+    add_result_button = KeyboardButton("Natija qo'shish")
+    add_competition_button = KeyboardButton("Yangi Musobaqa qo'shish")
+
+    markup.add(import_button, add_result_button)
+    markup.add(add_competition_button)
+    await bot.send_message(message.chat.id, welcome_message, reply_markup=markup, parse_mode='HTML')
 
 
 api_id = '20182242'
 api_hash = '7546947bc9764e8bfbc05918189fb608'
 
-async def check_exist_in_required_channel(chat_id, required_channels):
+
+async def check_exist_in_required_channel(chat_id, channels):
     async with TelegramClient('bot_session', int(api_id), api_hash) as client:
-        try:
-            for channel in required_channels:
-                participant = await client.get_participant(channel, chat_id)
-                if participant:
-                    return True
-            return False
-        except Exception as e:
-            print(f"Xato: {e}")
-            return False
+        membership_status = []
+
+        for channel in channels:
+            try:
+                participants = await client.get_participants(channel)
+                is_member = any(participant.id == chat_id for participant in participants)
+                membership_status.append(is_member)
+
+            except Exception as e:
+                print(f"Error checking {channel}: {e}")
+                membership_status.append(False)
+
+        return all(membership_status)
 
 
-def handle_check_channel_subscription(message, bot):
-    required_channels = ['channel1', 'channel2']
-    chat_id = message.chat.id
+async def save_contact_to_db(chat_id, phone_number, first_name, last_name):
+    conn = get_db_connection()
+    cur = conn.cursor()
 
-    import asyncio
-    if asyncio.run(check_exist_in_required_channel(chat_id, required_channels)):
-        bot.send_message(chat_id, "Siz kerakli kanallarga obuna bo'ldingiz.")
-    else:
-        bot.send_message(chat_id, "Siz kerakli kanallarga obuna bo'lmagansiz.")
+    try:
+        cur.execute("""
+            INSERT INTO users (chat_id, phone_number, first_name, last_name)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (chat_id) DO UPDATE SET
+                phone_number = EXCLUDED.phone_number,
+                first_name = EXCLUDED.first_name,
+                last_name = EXCLUDED.last_name;
+        """, (chat_id, phone_number, first_name, last_name))
+
+        conn.commit()
+    except Exception as e:
+        print(f"Error saving contact to database: {e}")
+    finally:
+        cur.close()
+        conn.close()
+
+
+async def check_user_exist_phone_number(phone_number):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT COUNT(*) FROM users WHERE phone_number = %s", (phone_number,))
+        count = cur.fetchone()[0]
+        return count > 0
+    except Exception as e:
+        print(f"Error checking phone number: {e}")
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+
+async def check_user_exist_by_chat_id(chat_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT COUNT(*) FROM users WHERE chat_id = %s", (chat_id,))
+        count = cur.fetchone()[0]
+        return count > 0
+    except Exception as e:
+        print(f"Error checking chat_id : {e}")
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+
+async def get_result_by_code(code):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT code, math_ball, english_ball FROM results WHERE code = %s", (code,))
+        result = cur.fetchone()
+        if result:
+            message_text = f"""
+<code>1. Sizning codingiz: </code> {result[0]}
+<code>2. Matematika ballingiz: </code> {result[1]}
+<code>3. Ingliz tili ballingiz: </code> {result[2]}
+<code>4. Umumiy ballingiz: </code> {result[1] + result[2]}
+            """
+            markup = InlineKeyboardMarkup()
+            download_button = InlineKeyboardButton("📄 Sertifikatni yuklab olish",
+                                                   callback_data=f'download_certificate_{result[0]}')
+            markup.add(download_button)
+
+            return message_text, markup
+        else:
+            return f"No result found for code: {code}", None
+    except Exception as e:
+        return f"Error while getting code: {str(e)}", None
+    finally:
+        cur.close()
+        conn.close()
+
+
+async def import_result_informations(file_stream, chat_id, bot):
+    df = pd.read_excel(file_stream)
+
+    conn = await asyncpg.connect(user=POSTGRES_USER, password=POSTGRES_PASSWORD,
+                                 database=POSTGRES_DB, host=POSTGRES_HOST)
+    try:
+        for index, row in df.iterrows():
+            await conn.execute('''
+                INSERT INTO results (code, math_ball, english_ball, user_name, user_surname)
+                VALUES ($1, $2, $3, $4, $5)
+                ON CONFLICT (code) DO NOTHING;
+            ''', row['code'], row['math_ball'], row['english_ball'], row['user_name'], row['user_surname'])
+    finally:
+        await conn.close()
+
+    await bot.send_message(chat_id=chat_id, text="Malumotlar muvaffaqiyatli import qilindi.")
+
+
+async def add_name_to_certificate(image_path, name, surname):
+    img = cv2.imread(image_path)
+    if img is None:
+        raise ValueError(f"Unable to load image from {image_path}")
+    img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    height, width = img.shape[:2]
+
+    x = int(width * 0.5)
+    y = int(height * 0.50)
+    text = f"{name} {surname}"
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 2
+    font_color = (0, 0, 0)
+    thickness = 5
+    text_size, _ = cv2.getTextSize(text, font, font_scale, thickness)
+    text_x = x - (text_size[0] // 2)
+    text_y = y + (text_size[1] // 2)
+    cv2.putText(img, text, (text_x, text_y), font, font_scale, font_color, thickness, cv2.LINE_AA)
+
+    return img
+
+
+async def get_user_information_by_code(code):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT user_name, user_surname FROM results WHERE code = %s", (code,))
+        user_info = cur.fetchone()
+        if user_info:
+            name, surname = user_info
+            return name, surname
+        else:
+            raise ValueError(f"No user found with code: {code}")
+    finally:
+        cur.close()
+        conn.close()
