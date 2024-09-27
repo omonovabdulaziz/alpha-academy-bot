@@ -1,17 +1,17 @@
-#name: CI/CD Pipeline
-#
-#on:
-#  push:
-#    branches:
-#      - master
-#
-#jobs:
-#  deploy:
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - name: Install sshpass
-#        run: sudo apt-get install -y sshpass
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install sshpass
+        run: sudo apt-get install -y sshpass
 #
 #      - name: Deploy to Server
 #        env:
